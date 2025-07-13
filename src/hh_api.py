@@ -35,6 +35,7 @@ class HHApi(AbstractApi):
     def get_vacancies(self, text, page=2):
         """Получение списка вакансий по ключевому слову."""
         all_vacancies = []
+        self.__params["page"] = 0
         while self.__params["page"] < page:
             vacancies = self._connect(text).json()["items"]
             all_vacancies.extend(vacancies)
