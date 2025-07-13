@@ -28,4 +28,3 @@ def test_connect(mock_get):
     assert result is response
     assert result.status_code == 200
     mock_get.assert_called_once()
-

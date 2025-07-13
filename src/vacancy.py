@@ -1,6 +1,7 @@
 class Vacancy:
     """Класс для представления вакансии."""
-    __slots__ = ('name', 'link', 'salary_from', 'salary_to', 'description')
+
+    __slots__ = ("name", "link", "salary_from", "salary_to", "description")
 
     def __init__(self, name, link, salary, description):
         """Инициализирует объект Vacancy, валидируя зарплату."""
@@ -9,7 +10,7 @@ class Vacancy:
         self.description = description
         self.__validate(salary)
 
-    def  __validate(self, salary: dict | None):
+    def __validate(self, salary: dict | None):
         """Приватный метод для валидации данных о зарплате."""
         if salary:
             self.salary_from = salary.get("from") or 0

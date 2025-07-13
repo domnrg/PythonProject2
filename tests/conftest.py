@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import Mock
 
+
 @pytest.fixture
 def fake_vacancies_response_page1():
     mock_response = Mock()
@@ -12,6 +13,7 @@ def fake_vacancies_response_page1():
         ]
     }
     return mock_response
+
 
 @pytest.fixture
 def fake_vacancies_response_page2():

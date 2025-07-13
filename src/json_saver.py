@@ -25,6 +25,7 @@ class AbstractJson(ABC):
 
 class JSONSaver(AbstractJson):
     """Класс для сохранения и загрузки вакансий в JSON-файл."""
+
     def __init__(self, filename="data/vacancies.json"):
         self.__filename = filename
 
@@ -37,7 +38,7 @@ class JSONSaver(AbstractJson):
                     "name": vacancy.get("name"),
                     "link": vacancy.get("alternate_url"),
                     "salary": vacancy.get("salary"),
-                    "description": vacancy.get("snippet", {}).get("requirement")
+                    "description": vacancy.get("snippet", {}).get("requirement"),
                 }
             )
         with open(self.__filename, "w", encoding="utf-8") as f:
