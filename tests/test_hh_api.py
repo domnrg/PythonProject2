@@ -1,14 +1,39 @@
-from http.client import responses
+import pytest
 
 from src.hh_api import HHApi
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from requests import Response
+
+
+@pytest.fixture
+def fake_vacancies_response_page1():
+    mock_response = Mock()
+    mock_response.raise_for_status = Mock()
+    mock_response.json.return_value = {
+        "items": [
+            {"id": "1", "name": "Python Dev"},
+            {"id": "2", "name": "Data Analyst"},
+        ]
+    }
+    return mock_response
+
+
+@pytest.fixture
+def fake_vacancies_response_page2():
+    mock_response = Mock()
+    mock_response.raise_for_status = Mock()
+    mock_response.json.return_value = {
+        "items": [
+            {"id": "3", "name": "Java Dev"},
+            {"id": "4", "name": "System Admin"},
+        ]
+    }
+    return mock_response
 
 
 def test_get_vacancies_returns_list(fake_vacancies_response_page1, fake_vacancies_response_page2):
     hh = HHApi()
 
-    # Подменяем _connect, чтобы при первом вызове вернуть page1, при втором — page2
     with patch.object(hh, "_connect", side_effect=[fake_vacancies_response_page1, fake_vacancies_response_page2]):
         result = hh.get_vacancies("python", page=2)
         print("RESULT:", result)

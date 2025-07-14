@@ -4,7 +4,7 @@ class Vacancy:
     __slots__ = ("name", "link", "salary_from", "salary_to", "description")
 
     def __init__(self, name, link, salary, description):
-        """Инициализирует объект Vacancy, валидируя зарплату."""
+        """Инициализирует объект Vacancy."""
         self.name = name
         self.link = link
         self.description = description
