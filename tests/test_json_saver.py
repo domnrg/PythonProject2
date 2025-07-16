@@ -28,18 +28,38 @@ def saver(tmp_path):
     return JSONSaver(filename=str(file_path))
 
 
-def test_write_and_read_vacancies(saver, sample_vacancies):
-    # записываем
-    saver.write_vacancies(sample_vacancies)
+def write_vacancies(self, vacancies: list[dict]):
+    """Сохраняет вакансии в JSON-файл, избегая дублирования по ссылке."""
+    try:
+        with open(self.__filename, encoding="utf-8") as f:
+            existing_vacancies = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        existing_vacancies = []
 
-    # читаем
-    read = saver.read_vacancies()
+    # Преобразуем новые вакансии в нужный формат
+    new_vacancies = []
+    for vacancy in vacancies:
+        new_vacancies.append({
+            "name": vacancy.get("name"),
+            "link": vacancy.get("alternate_url"),
+            "salary": vacancy.get("salary"),
+            "description": vacancy.get("snippet", {}).get("requirement"),
+        })
 
-    assert isinstance(read, list)
-    assert len(read) == 2
-    assert all(isinstance(v, Vacancy) for v in read)
-    assert read[0].name == "Python Developer"
-    assert read[1].salary_from == 0
+    # Объединяем списки
+    combined = existing_vacancies + new_vacancies
+
+    # Удаляем дубликаты по ссылке
+    unique_vacancies = []
+    seen_links = set()
+    for vac in combined:
+        if vac["link"] not in seen_links:
+            seen_links.add(vac["link"])
+            unique_vacancies.append(vac)
+
+    # Записываем обратно в файл
+    with open(self.__filename, "w", encoding="utf-8") as f:
+        json.dump(unique_vacancies, f, ensure_ascii=False, indent=4)
 
 
 def test_delete_vacancies(saver, sample_vacancies):

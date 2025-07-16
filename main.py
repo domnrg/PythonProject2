@@ -10,7 +10,7 @@ def user_interaction():
     vacancies_dicts = hh.get_vacancies(query)
 
     # Сохраняем список как объектов Vacancy
-    vacancies = [convert_dict_to_vacancy(v) for v in vacancies_dicts]
+    vacancies = [convert_dict_to_vacancy(vac) for vac in vacancies_dicts]
 
     # Топ N по зарплате
     while True:
