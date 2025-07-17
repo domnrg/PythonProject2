@@ -28,38 +28,58 @@ def saver(tmp_path):
     return JSONSaver(filename=str(file_path))
 
 
-def write_vacancies(self, vacancies: list[dict]):
-    """Сохраняет вакансии в JSON-файл, избегая дублирования по ссылке."""
-    try:
-        with open(self.__filename, encoding="utf-8") as f:
-            existing_vacancies = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        existing_vacancies = []
+def test_write_and_read_vacancies(saver, sample_vacancies):
+    # Записываем вакансии
+    saver.write_vacancies(sample_vacancies)
 
-    # Преобразуем новые вакансии в нужный формат
-    new_vacancies = []
-    for vacancy in vacancies:
-        new_vacancies.append({
-            "name": vacancy.get("name"),
-            "link": vacancy.get("alternate_url"),
-            "salary": vacancy.get("salary"),
-            "description": vacancy.get("snippet", {}).get("requirement"),
-        })
+    # Читаем вакансии
+    vacancies = saver.read_vacancies()
 
-    # Объединяем списки
-    combined = existing_vacancies + new_vacancies
+    assert isinstance(vacancies, list)
+    assert len(vacancies) == 2
+    assert all(isinstance(vac, Vacancy) for vac in vacancies)
 
-    # Удаляем дубликаты по ссылке
-    unique_vacancies = []
-    seen_links = set()
-    for vac in combined:
-        if vac["link"] not in seen_links:
-            seen_links.add(vac["link"])
-            unique_vacancies.append(vac)
+    # Проверяем данные первой вакансии
+    first = vacancies[0]
+    assert first.name == "Python Developer"
+    assert first.link == "https://hh.ru/vacancy/123"
+    assert first.salary_from == 100000
 
-    # Записываем обратно в файл
-    with open(self.__filename, "w", encoding="utf-8") as f:
-        json.dump(unique_vacancies, f, ensure_ascii=False, indent=4)
+    # Проверяем данные второй вакансии (без зарплаты)
+    second = vacancies[1]
+    assert second.name == "Data Scientist"
+    assert second.salary_from == 0  # валидируется в Vacancy
+
+
+def test_write_vacancies_no_duplicates(saver, sample_vacancies):
+    # Записываем первый раз
+    saver.write_vacancies(sample_vacancies)
+
+    # Записываем с дубликатом и новой вакансией
+    new_vacancies = [
+        {
+            "name": "Python Developer",  # Дубликат по ссылке
+            "alternate_url": "https://hh.ru/vacancy/123",
+            "salary": {"from": 100000, "to": 150000},
+            "snippet": {"requirement": "Опыт от 3 лет"},
+        },
+        {
+            "name": "Frontend Developer",
+            "alternate_url": "https://hh.ru/vacancy/789",
+            "salary": {"from": 90000, "to": 120000},
+            "snippet": {"requirement": "React, JS"},
+        },
+    ]
+    saver.write_vacancies(new_vacancies)
+
+    # Считываем и проверяем, что дубликат не добавился
+    with open(saver._JSONSaver__filename, encoding="utf-8") as f:
+        data = json.load(f)
+
+    links = [vac["link"] for vac in data]
+    assert len(data) == 3
+    assert "https://hh.ru/vacancy/123" in links
+    assert "https://hh.ru/vacancy/789" in links
 
 
 def test_delete_vacancies(saver, sample_vacancies):
@@ -68,4 +88,15 @@ def test_delete_vacancies(saver, sample_vacancies):
 
     with open(saver._JSONSaver__filename, encoding="utf-8") as f:
         data = json.load(f)
+
     assert data == []
+
+
+def test_read_vacancies_file_not_exist(tmp_path):
+    # Тестируем чтение, когда файла нет
+    file_path = tmp_path / "nonexistent.json"
+    saver = JSONSaver(filename=str(file_path))
+
+    # Файл не существует, метод должен вернуть пустой список без ошибки
+    with pytest.raises(FileNotFoundError):
+        saver.read_vacancies()
